@@ -1,0 +1,899 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Gadget X — Admin Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+:root{
+  --primary:#006A4E; --primary-dark:#00543D; --primary-light:#00875C; --primary-dim:rgba(0,106,78,.10);
+  --accent:#F42A41; --accent-dark:#D71F36; --accent-dim:rgba(244,42,65,.10);
+  --warn:#F59E0B; --warn-dim:rgba(245,158,11,.12);
+  --info:#2563EB; --info-dim:rgba(37,99,235,.10);
+  --bg:#F8FAFC; --surface:#FFFFFF; --surface-2:#F1F5F9;
+  --text:#1F2937; --text-dim:#5B6472; --text-faint:#8B94A3;
+  --border:rgba(31,41,55,.10); --border-2:rgba(31,41,55,.18);
+  --shadow-sm:0 6px 20px rgba(31,41,55,.07); --shadow:0 22px 50px rgba(31,41,55,.12);
+  --radius:16px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'Noto Sans Bengali',sans-serif;line-height:1.6;}
+button,input,select,textarea{font-family:inherit;}
+.mono{font-family:'Inter',monospace;}
+
+/* ---------- LOGIN ---------- */
+#loginScreen{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;
+  background:linear-gradient(180deg,#EAF6F1 0%, var(--bg) 60%);}
+.login-box{width:400px;max-width:100%;background:#fff;border:1px solid var(--border);border-radius:20px;padding:34px;box-shadow:var(--shadow);}
+.login-logo{display:flex;align-items:center;gap:10px;justify-content:center;margin-bottom:8px;}
+.logo-mark{position:relative;width:42px;height:42px;border-radius:12px;background:var(--primary);display:flex;align-items:center;justify-content:center;color:#fff;font-family:'Inter';font-weight:800;font-size:15px;}
+.logo-mark::after{content:'';position:absolute;top:-3px;right:-3px;width:11px;height:11px;border-radius:50%;background:var(--accent);border:2px solid #fff;}
+.logo-text{font-family:'Inter';font-weight:700;font-size:21px;}
+.logo-text .x{color:var(--accent);}
+.login-sub{text-align:center;color:var(--text-dim);font-size:13.5px;margin-bottom:24px;}
+.fg{margin-bottom:15px;}
+.fg label{display:block;font-size:12.5px;color:var(--text-dim);margin-bottom:6px;font-weight:500;}
+.fg input,.fg select,.fg textarea{width:100%;padding:12px 14px;background:var(--bg);border:1px solid var(--border-2);border-radius:10px;font-size:14px;color:var(--text);}
+.fg input:focus,.fg select:focus,.fg textarea:focus{outline:none;border-color:var(--primary);}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 22px;border-radius:10px;font-weight:600;font-size:14px;cursor:pointer;border:none;transition:.2s;}
+.btn-primary{background:var(--primary);color:#fff;}
+.btn-primary:hover{background:var(--primary-dark);}
+.btn-outline{background:#fff;color:var(--text);border:1.5px solid var(--border-2);}
+.btn-outline:hover{border-color:var(--primary);}
+.btn-accent{background:var(--accent);color:#fff;}
+.btn-accent:hover{background:var(--accent-dark);}
+.btn-sm{padding:7px 13px;font-size:12.5px;border-radius:8px;}
+.btn:disabled{opacity:.55;cursor:not-allowed;}
+.msg{border-radius:10px;padding:11px 14px;font-size:12.8px;margin-top:12px;display:none;}
+.msg.show{display:block;}
+.msg.err{background:var(--accent-dim);border:1px solid rgba(244,42,65,.3);color:var(--accent-dark);}
+.msg.ok{background:var(--primary-dim);border:1px solid rgba(0,106,78,.3);color:var(--primary-dark);}
+
+/* ---------- APP SHELL ---------- */
+#app{display:none;}
+.topbar{position:sticky;top:0;z-index:100;background:rgba(255,255,255,.95);backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--border);padding:12px 0;}
+.wrap{max-width:1560px;margin:0 auto;padding:0 20px;}
+.topbar .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;}
+.top-right{display:flex;align-items:center;gap:10px;}
+.who{font-size:12.5px;color:var(--text-dim);}
+.env-tag{font-size:11px;font-weight:700;padding:4px 10px;border-radius:100px;background:var(--warn-dim);color:#92400E;border:1px solid rgba(245,158,11,.35);}
+
+.section{padding:22px 0;}
+.stats{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:20px;}
+.stat{background:#fff;border:1px solid var(--border);border-radius:14px;padding:15px 16px;box-shadow:var(--shadow-sm);}
+.stat .l{font-size:11.5px;color:var(--text-faint);font-weight:500;margin-bottom:4px;}
+.stat .v{font-family:'Inter';font-size:21px;font-weight:700;color:var(--text);line-height:1.2;}
+.stat.green .v{color:var(--primary);} .stat.red .v{color:var(--accent);} .stat.amber .v{color:#B45309;}
+
+.toolbar{background:#fff;border:1px solid var(--border);border-radius:14px;padding:14px 16px;margin-bottom:16px;box-shadow:var(--shadow-sm);}
+.filter-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+.filter-row + .filter-row{margin-top:10px;padding-top:10px;border-top:1px solid var(--border);}
+.flabel{font-size:11.5px;color:var(--text-faint);font-weight:600;margin-right:2px;min-width:72px;}
+.chip{background:var(--surface-2);color:var(--text-dim);border:1px solid var(--border);padding:6px 14px;border-radius:100px;
+  font-size:12.5px;font-weight:600;cursor:pointer;transition:.15s;}
+.chip:hover{border-color:var(--border-2);color:var(--text);}
+.chip.active{background:var(--primary);color:#fff;border-color:transparent;}
+.chip.active.red{background:var(--accent);}
+.search-box{flex:1;min-width:200px;position:relative;}
+.search-box input{width:100%;padding:9px 14px 9px 34px;background:var(--bg);border:1px solid var(--border-2);border-radius:9px;font-size:13px;}
+.search-box i{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--text-faint);font-size:13px;}
+
+/* ---------- TABLE ---------- */
+.table-wrap{background:#fff;border:1px solid var(--border);border-radius:14px;overflow:auto;box-shadow:var(--shadow-sm);}
+table{width:100%;border-collapse:collapse;font-size:13px;min-width:1400px;}
+thead th{background:var(--surface-2);text-align:left;padding:11px 12px;font-size:11.5px;font-weight:700;
+  color:var(--text-dim);white-space:nowrap;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:5;}
+tbody td{padding:11px 12px;border-bottom:1px solid var(--border);vertical-align:top;}
+tbody tr:hover{background:var(--surface-2);}
+.oid{font-family:'Inter';font-weight:700;font-size:12.5px;color:var(--primary);white-space:nowrap;}
+.nowrap{white-space:nowrap;}
+.amt{font-family:'Inter';font-weight:600;white-space:nowrap;}
+.amt.due{color:var(--accent);}
+.amt.paid{color:var(--primary);}
+.muted{color:var(--text-faint);font-size:11.5px;}
+.items-cell{max-width:230px;font-size:12px;line-height:1.5;}
+
+.tag{display:inline-block;font-size:10.8px;font-weight:700;padding:3px 9px;border-radius:6px;white-space:nowrap;}
+.tag.gray{background:var(--surface-2);color:var(--text-dim);border:1px solid var(--border-2);}
+.tag.green{background:var(--primary-dim);color:var(--primary-dark);border:1px solid rgba(0,106,78,.28);}
+.tag.red{background:var(--accent-dim);color:var(--accent-dark);border:1px solid rgba(244,42,65,.28);}
+.tag.amber{background:var(--warn-dim);color:#92400E;border:1px solid rgba(245,158,11,.32);}
+.tag.blue{background:var(--info-dim);color:#1D4ED8;border:1px solid rgba(37,99,235,.28);}
+
+.row-actions{display:flex;gap:6px;flex-wrap:wrap;}
+.status-select{padding:6px 9px;border:1px solid var(--border-2);border-radius:8px;font-size:12px;background:#fff;max-width:170px;}
+
+.empty{text-align:center;padding:60px 20px;color:var(--text-faint);}
+.empty i{font-size:40px;opacity:.3;display:block;margin-bottom:12px;}
+
+/* ---------- MODAL ---------- */
+.ov{position:fixed;inset:0;background:rgba(15,23,20,.55);z-index:900;opacity:0;visibility:hidden;transition:.25s;}
+.ov.active{opacity:1;visibility:visible;}
+.modal{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(.96);width:520px;max-width:94vw;max-height:90vh;overflow-y:auto;
+  background:#fff;border-radius:18px;z-index:901;box-shadow:var(--shadow);opacity:0;visibility:hidden;transition:.22s;}
+.modal.active{opacity:1;visibility:visible;transform:translate(-50%,-50%) scale(1);}
+.modal-head{padding:18px 22px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;background:var(--surface-2);border-radius:18px 18px 0 0;}
+.modal-head h3{font-size:16.5px;font-weight:700;}
+.modal-close{background:#fff;border:1px solid var(--border);width:32px;height:32px;border-radius:8px;cursor:pointer;color:var(--text);}
+.modal-body{padding:22px;}
+.modal-foot{padding:16px 22px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end;background:var(--surface-2);border-radius:0 0 18px 18px;}
+.kv{display:flex;justify-content:space-between;padding:6px 0;font-size:13px;border-bottom:1px solid var(--border);}
+.kv:last-child{border-bottom:none;}
+.kv span:last-child{font-weight:600;text-align:right;}
+.warn-box{background:var(--warn-dim);border:1px solid rgba(245,158,11,.35);color:#92400E;border-radius:10px;padding:12px 14px;font-size:12.8px;margin-bottom:14px;}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+
+.toast{position:fixed;top:80px;right:20px;background:var(--text);color:#fff;padding:13px 20px;border-radius:11px;font-size:13.5px;
+  z-index:2000;box-shadow:var(--shadow);display:flex;align-items:center;gap:9px;transform:translateX(130%);transition:transform .3s;}
+.toast.show{transform:translateX(0);}
+.toast.bad{background:var(--accent-dark);}
+.toast i{color:#4ADE80;} .toast.bad i{color:#fff;}
+
+@media(max-width:1200px){ .stats{grid-template-columns:repeat(3,1fr);} }
+@media(max-width:640px){ .stats{grid-template-columns:repeat(2,1fr);} .flabel{min-width:100%;} }
+</style>
+</head>
+<body>
+
+<!-- ==================== LOGIN ==================== -->
+<div id="loginScreen">
+  <div class="login-box">
+    <div class="login-logo">
+      <div class="logo-mark">GX</div>
+      <div class="logo-text">Gadget <span class="x">X</span></div>
+    </div>
+    <p class="login-sub">অ্যাডমিন ড্যাশবোর্ড — লগইন করুন</p>
+    <div class="fg">
+      <label>ইমেইল</label>
+      <input type="email" id="liEmail" placeholder="admin@gadgetx.com.bd" autocomplete="username">
+    </div>
+    <div class="fg">
+      <label>পাসওয়ার্ড</label>
+      <input type="password" id="liPass" placeholder="••••••••" autocomplete="current-password">
+    </div>
+    <button class="btn btn-primary" id="liBtn" style="width:100%;"><i class="fas fa-right-to-bracket"></i> লগইন</button>
+    <div class="msg err" id="liMsg"></div>
+    <p style="font-size:11.5px;color:var(--text-faint);text-align:center;margin-top:16px;line-height:1.6;">
+      <i class="fas fa-shield-halved"></i> অ্যাকাউন্ট তৈরি হয় Supabase Dashboard → Authentication → Users থেকে।
+      সাইন-আপ বন্ধ রাখা আছে, তাই এখান থেকে কেউ নতুন অ্যাকাউন্ট খুলতে পারবে না।
+    </p>
+  </div>
+</div>
+
+<!-- ==================== APP ==================== -->
+<div id="app">
+  <div class="topbar">
+    <div class="wrap">
+      <div class="login-logo" style="margin:0;">
+        <div class="logo-mark">GX</div>
+        <div class="logo-text">Gadget <span class="x">X</span></div>
+        <span style="font-size:12.5px;color:var(--text-dim);margin-left:6px;">Admin</span>
+      </div>
+      <div class="top-right">
+        <span class="env-tag" id="envTag">SANDBOX</span>
+        <span class="who" id="whoAmI"></span>
+        <button class="btn btn-outline btn-sm" id="refreshBtn"><i class="fas fa-rotate"></i> রিফ্রেশ</button>
+        <button class="btn btn-outline btn-sm" id="logoutBtn"><i class="fas fa-right-from-bracket"></i> লগআউট</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="wrap section">
+    <!-- STATS -->
+    <div class="stats" id="statsRow"></div>
+
+    <!-- TOOLBAR -->
+    <div class="toolbar">
+      <div class="filter-row">
+        <span class="flabel">পেমেন্ট</span>
+        <button class="chip active" data-pay="all">সব</button>
+        <button class="chip" data-pay="paid">Paid</button>
+        <button class="chip" data-pay="delivery_charge_paid">Delivery Charge Paid</button>
+        <button class="chip" data-pay="unpaid">Unpaid</button>
+        <button class="chip" data-pay="pending">Pending</button>
+        <button class="chip" data-pay="failed">Failed</button>
+        <button class="chip" data-pay="cancelled">Cancelled</button>
+        <button class="chip" data-pay="refunded">Refunded</button>
+      </div>
+      <div class="filter-row">
+        <span class="flabel">পদ্ধতি</span>
+        <button class="chip active" data-method="all">সব</button>
+        <button class="chip" data-method="cod">COD</button>
+        <button class="chip" data-method="online">Online</button>
+        <button class="chip" data-method="legacy">পুরনো (bKash/Nagad/Rocket)</button>
+        <span class="flabel" style="margin-left:14px;">অর্ডার</span>
+        <button class="chip active" data-status="all">সব</button>
+        <button class="chip" data-status="pending">Pending</button>
+        <button class="chip" data-status="confirmed">Confirmed</button>
+        <button class="chip" data-status="processing">Processing</button>
+        <button class="chip" data-status="ready_for_delivery">Ready</button>
+        <button class="chip" data-status="shipped">Shipped</button>
+        <button class="chip" data-status="out_for_delivery">Out for Delivery</button>
+        <button class="chip" data-status="delivered">Delivered</button>
+        <button class="chip" data-status="cancelled">Cancelled</button>
+        <button class="chip" data-status="returned">Returned</button>
+        <button class="chip" data-status="refunded">Refunded</button>
+      </div>
+      <div class="filter-row">
+        <div class="search-box">
+          <i class="fas fa-magnifying-glass"></i>
+          <input type="text" id="searchBox" placeholder="Order ID, নাম, ফোন, শহর, consignment দিয়ে খুঁজুন...">
+        </div>
+        <span class="muted" id="rowCount"></span>
+      </div>
+    </div>
+
+    <!-- TABLE -->
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Order ID</th>
+            <th>Date &amp; Time</th>
+            <th>Customer</th>
+            <th>Phone</th>
+            <th>Address</th>
+            <th>City</th>
+            <th>Items</th>
+            <th>Qty</th>
+            <th>Product Total</th>
+            <th>Delivery</th>
+            <th>Total</th>
+            <th>Paid</th>
+            <th>Due</th>
+            <th>Method</th>
+            <th>Payment Status</th>
+            <th>Transaction ID</th>
+            <th>Order Status</th>
+            <th>Courier</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="ordersBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== COURIER MODAL ==================== -->
+<div class="ov" id="courierOv"></div>
+<div class="modal" id="courierModal">
+  <div class="modal-head"><h3><i class="fas fa-truck-fast"></i> কুরিয়ার তথ্য</h3><button class="modal-close" id="courierClose"><i class="fas fa-times"></i></button></div>
+  <div class="modal-body">
+    <div class="warn-box"><i class="fas fa-circle-info"></i> এখানে যা লিখবেন কাস্টমার সেটাই ট্র্যাকিং পেজে দেখবে। কুরিয়ার থেকে সত্যিকার তথ্য পেলেই কেবল লিখুন — অনুমান করে লিখবেন না।</div>
+    <p class="muted" style="margin-bottom:14px;">অর্ডার: <b class="oid" id="cmOrderId"></b></p>
+    <div class="grid2">
+      <div class="fg"><label>Courier Name</label><input type="text" id="cmName" placeholder="Steadfast"></div>
+      <div class="fg"><label>Consignment ID</label><input type="text" id="cmConsignment" placeholder="কুরিয়ার থেকে পাওয়া আইডি"></div>
+      <div class="fg"><label>Tracking Code</label><input type="text" id="cmTracking" placeholder="tracking code"></div>
+      <div class="fg"><label>Delivery Status</label><input type="text" id="cmDelivStatus" placeholder="যেমন: In Transit"></div>
+      <div class="fg"><label>Origin</label><input type="text" id="cmOrigin" placeholder="Dhaka"></div>
+      <div class="fg"><label>Destination</label><input type="text" id="cmDestination" placeholder="Dhaka / Mirpur"></div>
+      <div class="fg"><label>Current Location</label><input type="text" id="cmCurrent" placeholder="Sort Facility, Dhaka"></div>
+      <div class="fg"><label>Estimated Delivery</label><input type="date" id="cmEstimated"></div>
+    </div>
+    <div class="fg"><label>Note (ঐচ্ছিক)</label><input type="text" id="cmNote" placeholder="অভ্যন্তরীণ নোট"></div>
+    <div class="msg err" id="cmMsg"></div>
+    <p style="font-size:12px;color:var(--muted);margin-top:10px;line-height:1.7;">
+      উপরের ঘরগুলো হাতে ভরে "সেভ করুন" — এটা সবসময় কাজ করে।<br>
+      নিচের দুটো বোতাম Steadfast-এর সাথে সরাসরি কথা বলে। Edge Function-টা
+      এখন বন্ধ অবস্থায় আছে; API তথ্য মিলিয়ে <code>STEADFAST_ENABLED = true</code>
+      করার আগ পর্যন্ত এগুলো ভদ্রভাবে "চালু নেই" বলবে।
+    </p>
+  </div>
+  <div class="modal-foot">
+    <button class="btn btn-outline" id="cmDispatch"><i class="fas fa-truck-fast"></i> কুরিয়ারে পাঠান</button>
+    <button class="btn btn-outline" id="cmSync"><i class="fas fa-rotate"></i> স্টেটাস আনুন</button>
+    <button class="btn btn-outline" id="cmCancel">বাতিল</button>
+    <button class="btn btn-primary" id="cmSave"><i class="fas fa-floppy-disk"></i> সেভ করুন</button>
+  </div>
+</div>
+
+<!-- ==================== DETAILS MODAL ==================== -->
+<div class="ov" id="detailOv"></div>
+<div class="modal" id="detailModal">
+  <div class="modal-head"><h3><i class="fas fa-receipt"></i> অর্ডার বিবরণ</h3><button class="modal-close" id="detailClose"><i class="fas fa-times"></i></button></div>
+  <div class="modal-body" id="detailBody"></div>
+  <div class="modal-foot"><button class="btn btn-outline" id="detailCancel">বন্ধ করুন</button></div>
+</div>
+
+<!-- ==================== CONFIRM MODAL ==================== -->
+<div class="ov" id="confirmOv"></div>
+<div class="modal" id="confirmModal" style="width:440px;">
+  <div class="modal-head"><h3 id="cfTitle">নিশ্চিত করুন</h3><button class="modal-close" id="cfClose"><i class="fas fa-times"></i></button></div>
+  <div class="modal-body">
+    <p id="cfText" style="font-size:14px;color:var(--text-dim);line-height:1.7;"></p>
+    <div class="fg" id="cfNoteWrap" style="margin-top:14px;display:none;">
+      <label>কারণ / নোট (ঐচ্ছিক)</label>
+      <input type="text" id="cfNote" placeholder="কেন করছেন লিখে রাখুন">
+    </div>
+  </div>
+  <div class="modal-foot">
+    <button class="btn btn-outline" id="cfNo">না</button>
+    <button class="btn btn-accent" id="cfYes">হ্যাঁ, নিশ্চিত</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"><i class="fas fa-check-circle"></i> <span id="toastText"></span></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+/* =====================================================================
+   SUPABASE কনফিগারেশন
+   ---------------------------------------------------------------------
+   ⚠️ এখানেও শুধু anon (public) key বসবে — gadgetx.html-এ যেটা বসিয়েছেন,
+   হুবহু সেটাই। service_role key কখনোই এখানে বসাবেন না।
+   অ্যাডমিনের ক্ষমতা আসে Supabase Auth লগইন থেকে, key থেকে নয়।
+   ===================================================================== */
+const SUPABASE_URL      = "https://winwdytgwidnsevgotxb.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndpbndkeXRnd2lkbnNldmdvdHhiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg0NjMwNDAsImV4cCI6MjEwNDAzOTA0MH0.6tO4DqdMrrTdwR-zfUvp0sHzQbfp3nAir1uOZ_GRdQE";
+
+let sb = null, SB_READY = false;
+/* ভুল করে service_role key বসিয়ে ফেললে ধরে ফেলি — ওটা ব্রাউজারে গেলে
+   RLS পুরোপুরি বাইপাস হয়ে যায়, মানে সব টেবিল সবার জন্য খুলে যায়। */
+function looksLikeAnonKey(k){
+  try{
+    const SLASH = String.fromCharCode(47);
+    const p = JSON.parse(atob(k.split('.')[1].split('-').join('+').split('_').join(SLASH)));
+    if(p.role && p.role !== 'anon'){
+      console.error('⛔ এই key-টি anon নয় ("' + p.role + '")। admin.html-এ শুধু anon/public key বসবে।');
+      alert('ভুল key বসানো হয়েছে — এটি anon key নয়। Settings → API থেকে "anon public" key নিন।');
+      return false;
+    }
+    return true;
+  }catch(e){ return true; }
+}
+if(SUPABASE_URL.startsWith("https://") && SUPABASE_ANON_KEY.startsWith("eyJ") && looksLikeAnonKey(SUPABASE_ANON_KEY)){
+  try{ sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY); SB_READY = true; }
+  catch(e){ console.error(e); }
+}
+
+/* ===================== STATE ===================== */
+let ALL_ORDERS = [];
+let FILTER = { pay:'all', method:'all', status:'all', q:'' };
+let realtimeChannel = null;
+let confirmResolver = null;
+
+/* ===================== লেবেল ===================== */
+const STATUS_LIST = ['pending','confirmed','processing','ready_for_delivery','shipped','out_for_delivery','delivered','cancelled','returned','refunded'];
+const STATUS_BN = {
+  pending:'Pending', confirmed:'Confirmed', processing:'Processing',
+  ready_for_delivery:'Ready for Delivery', shipped:'Shipped',
+  out_for_delivery:'Out for Delivery', delivered:'Delivered',
+  cancelled:'Cancelled', returned:'Returned', refunded:'Refunded'
+};
+const STATUS_TONE = {
+  pending:'gray', confirmed:'blue', processing:'blue', ready_for_delivery:'blue',
+  shipped:'amber', out_for_delivery:'amber', delivered:'green',
+  cancelled:'red', returned:'red', refunded:'red'
+};
+const PAY_LABEL = {
+  paid:'PAID', delivery_charge_paid:'DELIVERY CHARGE PAID', unpaid:'UNPAID',
+  pending:'PENDING', failed:'FAILED', cancelled:'CANCELLED', refunded:'REFUNDED'
+};
+const PAY_TONE = {
+  paid:'green', delivery_charge_paid:'green', unpaid:'gray',
+  pending:'amber', failed:'red', cancelled:'red', refunded:'red'
+};
+/* পুরনো অর্ডারে bkash / nagad / rocket থাকতে পারে (ডাটাবেসের CHECK-এ ওগুলো
+   এখনো বৈধ)। আগে ওগুলো ভুল করে "COD" দেখাত — এখন নিজের নামেই দেখাবে। */
+const METHOD_LABEL  = { cod:'COD', online:'ONLINE', bkash:'bKASH', nagad:'NAGAD', rocket:'ROCKET' };
+const METHOD_FULL   = { cod:'Cash on Delivery', online:'Full Payment (Online)',
+                        bkash:'bKash (পুরনো)', nagad:'Nagad (পুরনো)', rocket:'Rocket (পুরনো)' };
+const METHOD_TONE   = { cod:'gray', online:'blue', bkash:'amber', nagad:'amber', rocket:'amber' };
+const methodLabel = m => METHOD_LABEL[m] || String(m || '—').toUpperCase();
+const methodFull  = m => METHOD_FULL[m]  || String(m || '—');
+const methodTone  = m => METHOD_TONE[m]  || 'amber';
+const ERR_BN = {
+  not_authenticated:'আপনি লগইন করা নেই। আবার লগইন করুন।',
+  order_not_found:'অর্ডার পাওয়া যায়নি।',
+  invalid_status_transition:'এই স্টেটাসে সরাসরি যাওয়া যাবে না (যেমন Delivered থেকে পেছনে যাওয়া)। দরকার হলে Force ব্যবহার করুন।'
+};
+
+/* ===================== ছোট হেল্পার ===================== */
+function fmtBDT(n){ return '৳ ' + Number(n||0).toLocaleString('en-US'); }
+function fmtDate(iso){
+  if(!iso) return '—';
+  const d = new Date(iso);
+  return d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}) + '<br><span class="muted">' +
+         d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}) + '</span>';
+}
+function fmtDateShort(iso){
+  if(!iso) return '—';
+  const d = new Date(iso);
+  return d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}) + ' ' +
+         d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+}
+function esc(s){
+  return String(s==null?'':s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function toast(text, bad){
+  const t = document.getElementById('toast');
+  document.getElementById('toastText').textContent = text;
+  t.classList.toggle('bad', !!bad);
+  t.querySelector('i').className = bad ? 'fas fa-circle-exclamation' : 'fas fa-check-circle';
+  t.classList.add('show');
+  clearTimeout(window._tt); window._tt = setTimeout(()=>t.classList.remove('show'), 3000);
+}
+function showMsg(id, text, ok){
+  const el = document.getElementById(id);
+  el.textContent = text;
+  el.className = 'msg ' + (ok?'ok':'err') + ' show';
+}
+function hideMsg(id){ document.getElementById(id).classList.remove('show'); }
+
+/* ===================== নিশ্চিতকরণ (PART 18) ===================== */
+function askConfirm(title, text, withNote){
+  document.getElementById('cfTitle').textContent = title;
+  document.getElementById('cfText').textContent = text;
+  document.getElementById('cfNote').value = '';
+  document.getElementById('cfNoteWrap').style.display = withNote ? 'block' : 'none';
+  document.getElementById('confirmOv').classList.add('active');
+  document.getElementById('confirmModal').classList.add('active');
+  return new Promise(resolve=>{ confirmResolver = resolve; });
+}
+function closeConfirm(answer){
+  document.getElementById('confirmOv').classList.remove('active');
+  document.getElementById('confirmModal').classList.remove('active');
+  const note = document.getElementById('cfNote').value.trim();
+  if(confirmResolver){ confirmResolver(answer ? {ok:true, note} : {ok:false}); confirmResolver = null; }
+}
+document.getElementById('cfYes').addEventListener('click', ()=>closeConfirm(true));
+document.getElementById('cfNo').addEventListener('click', ()=>closeConfirm(false));
+document.getElementById('cfClose').addEventListener('click', ()=>closeConfirm(false));
+document.getElementById('confirmOv').addEventListener('click', ()=>closeConfirm(false));
+
+/* ===================== লগইন ===================== */
+async function doLogin(){
+  if(!SB_READY){ showMsg('liMsg','Supabase কনফিগার করা হয়নি — ফাইলের উপরে URL ও anon key বসান।'); return; }
+  const email = document.getElementById('liEmail').value.trim();
+  const pass  = document.getElementById('liPass').value;
+  if(!email || !pass){ showMsg('liMsg','ইমেইল ও পাসওয়ার্ড দুটোই দিন।'); return; }
+  const btn = document.getElementById('liBtn');
+  btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> লগইন হচ্ছে...';
+  hideMsg('liMsg');
+  const { data, error } = await sb.auth.signInWithPassword({ email, password: pass });
+  btn.disabled = false; btn.innerHTML = '<i class="fas fa-right-to-bracket"></i> লগইন';
+  if(error){
+    showMsg('liMsg', 'ইমেইল বা পাসওয়ার্ড মিলছে না। আবার চেষ্টা করুন।');
+    return;
+  }
+  await enterApp(data.user);
+}
+document.getElementById('liBtn').addEventListener('click', doLogin);
+document.getElementById('liPass').addEventListener('keydown', e=>{ if(e.key==='Enter') doLogin(); });
+document.getElementById('liEmail').addEventListener('keydown', e=>{ if(e.key==='Enter') doLogin(); });
+
+async function doLogout(){
+  if(realtimeChannel){ try{ await sb.removeChannel(realtimeChannel); }catch(e){} realtimeChannel = null; }
+  await sb.auth.signOut();
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('loginScreen').style.display = 'flex';
+  ALL_ORDERS = [];
+}
+document.getElementById('logoutBtn').addEventListener('click', doLogout);
+
+async function enterApp(user){
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  document.getElementById('whoAmI').textContent = user?.email || '';
+  await loadAll();
+  subscribeRealtime();
+}
+
+/* ===================== ডেটা লোড ===================== */
+async function loadAll(){
+  await Promise.all([loadStats(), loadOrders()]);
+}
+async function loadStats(){
+  const { data, error } = await sb.rpc('admin_order_stats');
+  const el = document.getElementById('statsRow');
+  if(error || !data || data.ok !== true){
+    el.innerHTML = `<div class="stat"><div class="l">পরিসংখ্যান</div><div class="v">—</div></div>`;
+    return;
+  }
+  const s = data;
+  el.innerHTML = `
+    <div class="stat"><div class="l">মোট অর্ডার</div><div class="v">${s.total_orders}</div></div>
+    <div class="stat"><div class="l">আজকের অর্ডার</div><div class="v">${s.today_orders}</div></div>
+    <div class="stat amber"><div class="l">Pending</div><div class="v">${s.pending}</div></div>
+    <div class="stat"><div class="l">Processing</div><div class="v">${s.processing}</div></div>
+    <div class="stat green"><div class="l">Delivered</div><div class="v">${s.delivered}</div></div>
+    <div class="stat red"><div class="l">Cancelled</div><div class="v">${s.cancelled}</div></div>
+    <div class="stat green"><div class="l">Paid (Full)</div><div class="v">${s.paid_count}</div></div>
+    <div class="stat green"><div class="l">Delivery Charge Paid</div><div class="v">${s.dc_paid_count}</div></div>
+    <div class="stat"><div class="l">Unpaid</div><div class="v">${s.unpaid_count}</div></div>
+    <div class="stat green"><div class="l">অনলাইনে আদায়</div><div class="v">${fmtBDT(s.collected_online)}</div></div>
+    <div class="stat red"><div class="l">ডেলিভারিতে বাকি</div><div class="v">${fmtBDT(s.cod_due)}</div></div>
+    <div class="stat green"><div class="l">Delivered রেভিনিউ</div><div class="v">${fmtBDT(s.delivered_revenue)}</div></div>`;
+}
+
+async function loadOrders(){
+  // অ্যাডমিন লগইন করা আছে → RLS policy "admin can read orders" এটাকে অনুমতি দেয়।
+  const { data, error } = await sb
+    .from('orders')
+    .select('*')
+    .order('created_at', { ascending: false })
+    .limit(1000);
+  if(error){
+    document.getElementById('ordersBody').innerHTML =
+      `<tr><td colspan="19"><div class="empty"><i class="fas fa-triangle-exclamation"></i>অর্ডার লোড করা যায়নি। লগআউট করে আবার লগইন করুন।</div></td></tr>`;
+    return;
+  }
+  ALL_ORDERS = data || [];
+  renderTable();
+}
+
+/* ===================== ফিল্টার ===================== */
+document.querySelectorAll('.chip[data-pay]').forEach(c=>c.addEventListener('click',()=>{
+  document.querySelectorAll('.chip[data-pay]').forEach(x=>x.classList.remove('active'));
+  c.classList.add('active'); FILTER.pay = c.dataset.pay; renderTable();
+}));
+document.querySelectorAll('.chip[data-method]').forEach(c=>c.addEventListener('click',()=>{
+  document.querySelectorAll('.chip[data-method]').forEach(x=>x.classList.remove('active'));
+  c.classList.add('active'); FILTER.method = c.dataset.method; renderTable();
+}));
+document.querySelectorAll('.chip[data-status]').forEach(c=>c.addEventListener('click',()=>{
+  document.querySelectorAll('.chip[data-status]').forEach(x=>x.classList.remove('active'));
+  c.classList.add('active'); FILTER.status = c.dataset.status; renderTable();
+}));
+document.getElementById('searchBox').addEventListener('input', e=>{
+  FILTER.q = e.target.value.trim().toLowerCase(); renderTable();
+});
+document.getElementById('refreshBtn').addEventListener('click', async ()=>{
+  await loadAll(); toast('হালনাগাদ হয়েছে');
+});
+
+function applyFilters(){
+  return ALL_ORDERS.filter(o=>{
+    if(FILTER.pay !== 'all' && o.payment_status !== FILTER.pay) return false;
+    if(FILTER.method === 'legacy'){
+      // পুরনো গেটওয়ে দিয়ে আসা অর্ডার — cod/online-এর বাইরে সব
+      if(o.payment_method === 'cod' || o.payment_method === 'online') return false;
+    } else if(FILTER.method !== 'all' && o.payment_method !== FILTER.method) return false;
+    if(FILTER.status !== 'all' && o.status !== FILTER.status) return false;
+    if(FILTER.q){
+      const hay = [o.order_id,o.customer_name,o.phone,o.city,o.address,o.transaction_id,o.consignment_id]
+        .map(x=>String(x||'').toLowerCase()).join(' ');
+      if(!hay.includes(FILTER.q)) return false;
+    }
+    return true;
+  });
+}
+
+/* ===================== টেবিল রেন্ডার ===================== */
+function itemsSummary(items){
+  if(!Array.isArray(items) || items.length===0) return '<span class="muted">—</span>';
+  return items.map(i=>`${esc(i.name || i.id)} <span class="muted">× ${esc(i.qty)}</span>`).join('<br>');
+}
+function renderTable(){
+  const rows = applyFilters();
+  document.getElementById('rowCount').textContent = `${rows.length} টি অর্ডার দেখানো হচ্ছে (মোট ${ALL_ORDERS.length})`;
+  const body = document.getElementById('ordersBody');
+  if(rows.length===0){
+    body.innerHTML = `<tr><td colspan="19"><div class="empty"><i class="fas fa-inbox"></i>এই ফিল্টারে কোনো অর্ডার নেই।</div></td></tr>`;
+    return;
+  }
+  body.innerHTML = rows.map(o=>{
+    const pTone = PAY_TONE[o.payment_status] || 'gray';
+    const pLabel = PAY_LABEL[o.payment_status] || String(o.payment_status||'').toUpperCase();
+    const sTone = STATUS_TONE[o.status] || 'gray';
+    const opts = STATUS_LIST.map(s=>`<option value="${s}" ${s===o.status?'selected':''}>${STATUS_BN[s]}</option>`).join('');
+    const courier = o.consignment_id
+      ? `${esc(o.courier_name||'Courier')}<br><span class="muted mono">${esc(o.consignment_id)}</span>${o.delivery_status?`<br><span class="muted">${esc(o.delivery_status)}</span>`:''}`
+      : '<span class="muted">—</span>';
+    return `<tr>
+      <td class="oid">${esc(o.order_id)}</td>
+      <td class="nowrap">${fmtDate(o.created_at)}</td>
+      <td class="nowrap">${esc(o.customer_name)}</td>
+      <td class="nowrap mono">${esc(o.phone)}</td>
+      <td style="max-width:200px;font-size:12px;">${esc(o.address)}</td>
+      <td class="nowrap">${esc(o.city)}</td>
+      <td class="items-cell">${itemsSummary(o.items)}</td>
+      <td class="nowrap">${esc(o.quantity)}</td>
+      <td class="amt">${fmtBDT(o.product_total)}</td>
+      <td class="amt">${fmtBDT(o.delivery_charge)}</td>
+      <td class="amt">${fmtBDT(o.total_amount)}</td>
+      <td class="amt paid">${fmtBDT(o.paid_amount)}</td>
+      <td class="amt ${Number(o.due_amount)>0?'due':''}">${fmtBDT(o.due_amount)}</td>
+      <td class="nowrap"><span class="tag ${methodTone(o.payment_method)}">${methodLabel(o.payment_method)}</span></td>
+      <td class="nowrap"><span class="tag ${pTone}">${pLabel}</span></td>
+      <td class="nowrap mono" style="font-size:11px;">${o.transaction_id?esc(o.transaction_id):'<span class="muted">—</span>'}</td>
+      <td class="nowrap"><span class="tag ${sTone}">${STATUS_BN[o.status]||esc(o.status)}</span></td>
+      <td style="min-width:130px;">${courier}</td>
+      <td style="min-width:230px;">
+        <div class="row-actions">
+          <select class="status-select" data-setstatus="${esc(o.order_id)}">${opts}</select>
+          <button class="btn btn-outline btn-sm" data-courier="${esc(o.order_id)}"><i class="fas fa-truck"></i></button>
+          <button class="btn btn-outline btn-sm" data-detail="${esc(o.order_id)}"><i class="fas fa-eye"></i></button>
+          <button class="btn btn-outline btn-sm" data-refund="${esc(o.order_id)}" title="Refund"><i class="fas fa-rotate-left"></i></button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+  bindRowActions();
+}
+
+function bindRowActions(){
+  document.querySelectorAll('[data-setstatus]').forEach(sel=>{
+    sel.addEventListener('change', ()=>onStatusChange(sel.dataset.setstatus, sel.value, sel));
+  });
+  document.querySelectorAll('[data-courier]').forEach(b=>b.addEventListener('click', ()=>openCourier(b.dataset.courier)));
+  document.querySelectorAll('[data-detail]').forEach(b=>b.addEventListener('click', ()=>openDetail(b.dataset.detail)));
+  document.querySelectorAll('[data-refund]').forEach(b=>b.addEventListener('click', ()=>doRefund(b.dataset.refund)));
+}
+
+/* ===================== স্টেটাস আপডেট (PART 18) ===================== */
+async function onStatusChange(orderId, newStatus, selEl){
+  const o = ALL_ORDERS.find(x=>x.order_id===orderId);
+  const oldStatus = o ? o.status : '';
+  if(newStatus === oldStatus) return;
+
+  // বিপজ্জনক পরিবর্তনে আগে নিশ্চিত করি
+  let need = null;
+  if(newStatus === 'cancelled') need = ['অর্ডার বাতিল করবেন?', `${orderId} বাতিল করা হবে। কাস্টমার ট্র্যাকিং পেজে "বাতিল" দেখবে।`];
+  else if(newStatus === 'delivered') need = ['ডেলিভারড হিসেবে চিহ্নিত করবেন?', `${orderId} ডেলিভারড হিসেবে বন্ধ হয়ে যাবে। এরপর পেছনে ফেরানো যাবে না।`];
+  else if(newStatus === 'refunded') need = ['রিফান্ড হিসেবে চিহ্নিত করবেন?', `${orderId} রিফান্ড হিসেবে লেখা হবে। আসল টাকা ফেরত SSLCOMMERZ প্যানেল থেকে আলাদা করে দিতে হবে।`];
+  else if(newStatus === 'returned') need = ['রিটার্ন হিসেবে চিহ্নিত করবেন?', `${orderId} রিটার্ন হিসেবে লেখা হবে।`];
+
+  if(need){
+    const ans = await askConfirm(need[0], need[1], false);
+    if(!ans.ok){ if(selEl) selEl.value = oldStatus; return; }
+  }
+
+  if(newStatus === 'refunded'){ await doRefund(orderId, true); return; }
+
+  const { data, error } = await sb.rpc('admin_update_order_status', { p_order_id: orderId, p_status: newStatus });
+  if(error){ toast('আপডেট করা যায়নি — আবার চেষ্টা করুন।', true); if(selEl) selEl.value = oldStatus; return; }
+  if(!data || data.ok !== true){
+    const code = data && data.code;
+    // অবৈধ transition হলে Force দিয়ে করার সুযোগ দিই
+    if(code === 'invalid_status_transition'){
+      const ans = await askConfirm('জোর করে বদলাবেন?',
+        `${orderId}-কে সরাসরি "${STATUS_BN[newStatus]}" করা স্বাভাবিক নিয়মে যায় না। ভুল সংশোধনের জন্য জোর করে বদলানো যায় — কারণটা অর্ডারের নোটে লেখা থাকবে।`, true);
+      if(!ans.ok){ if(selEl) selEl.value = oldStatus; return; }
+      const f = await sb.rpc('admin_force_order_status', { p_order_id: orderId, p_status: newStatus, p_note: ans.note || null });
+      if(f.error || !f.data || f.data.ok !== true){ toast('জোর করেও বদলানো যায়নি।', true); if(selEl) selEl.value = oldStatus; return; }
+      toast(`${orderId} → ${STATUS_BN[newStatus]} (force)`);
+      await loadAll();
+      return;
+    }
+    toast(ERR_BN[code] || 'আপডেট করা যায়নি।', true);
+    if(selEl) selEl.value = oldStatus;
+    return;
+  }
+  toast(`${orderId} → ${STATUS_BN[newStatus]}`);
+  await loadAll();
+}
+
+/* ===================== রিফান্ড ===================== */
+async function doRefund(orderId, skipConfirm){
+  let note = '';
+  if(!skipConfirm){
+    const ans = await askConfirm('রিফান্ড হিসেবে চিহ্নিত করবেন?',
+      `${orderId} রিফান্ড হিসেবে লেখা হবে। মনে রাখবেন — এটা শুধু আপনার খাতায় লেখে। আসল টাকা ফেরত SSLCOMMERZ প্যানেল থেকে আলাদা করে দিতে হবে।`, true);
+    if(!ans.ok) return;
+    note = ans.note;
+  }
+  const { data, error } = await sb.rpc('admin_mark_refunded', { p_order_id: orderId, p_note: note || null });
+  if(error || !data || data.ok !== true){
+    toast(ERR_BN[data && data.code] || 'রিফান্ড লেখা যায়নি।', true);
+    return;
+  }
+  toast(`${orderId} রিফান্ড হিসেবে লেখা হয়েছে`);
+  await loadAll();
+}
+
+/* ===================== কুরিয়ার মডাল ===================== */
+let courierOrderId = null;
+function openCourier(orderId){
+  const o = ALL_ORDERS.find(x=>x.order_id===orderId); if(!o) return;
+  courierOrderId = orderId;
+  document.getElementById('cmOrderId').textContent = orderId;
+  document.getElementById('cmName').value        = o.courier_name || 'Steadfast';
+  document.getElementById('cmConsignment').value = o.consignment_id || '';
+  document.getElementById('cmTracking').value    = o.tracking_code || '';
+  document.getElementById('cmDelivStatus').value = o.delivery_status || '';
+  document.getElementById('cmOrigin').value      = o.courier_origin || '';
+  document.getElementById('cmDestination').value = o.courier_destination || (o.city ? o.city : '');
+  document.getElementById('cmCurrent').value     = o.courier_current_location || '';
+  document.getElementById('cmEstimated').value   = o.estimated_delivery || '';
+  document.getElementById('cmNote').value        = o.courier_note || '';
+  hideMsg('cmMsg');
+  document.getElementById('courierOv').classList.add('active');
+  document.getElementById('courierModal').classList.add('active');
+}
+function closeCourier(){
+  document.getElementById('courierOv').classList.remove('active');
+  document.getElementById('courierModal').classList.remove('active');
+  courierOrderId = null;
+}
+document.getElementById('courierClose').addEventListener('click', closeCourier);
+document.getElementById('cmCancel').addEventListener('click', closeCourier);
+document.getElementById('courierOv').addEventListener('click', closeCourier);
+
+document.getElementById('cmSave').addEventListener('click', async ()=>{
+  if(!courierOrderId) return;
+  const btn = document.getElementById('cmSave');
+  btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> সেভ হচ্ছে...';
+  const est = document.getElementById('cmEstimated').value;
+  const { data, error } = await sb.rpc('admin_set_courier_info', {
+    p_order_id:         courierOrderId,
+    p_courier_name:     document.getElementById('cmName').value.trim()        || null,
+    p_consignment_id:   document.getElementById('cmConsignment').value.trim() || null,
+    p_tracking_code:    document.getElementById('cmTracking').value.trim()    || null,
+    p_delivery_status:  document.getElementById('cmDelivStatus').value.trim() || null,
+    p_origin:           document.getElementById('cmOrigin').value.trim()      || null,
+    p_destination:      document.getElementById('cmDestination').value.trim() || null,
+    p_current_location: document.getElementById('cmCurrent').value.trim()     || null,
+    p_estimated:        est || null,
+    p_note:             document.getElementById('cmNote').value.trim()        || null
+  });
+  btn.disabled = false; btn.innerHTML = '<i class="fas fa-floppy-disk"></i> সেভ করুন';
+  if(error || !data || data.ok !== true){
+    showMsg('cmMsg', ERR_BN[data && data.code] || 'সেভ করা যায়নি — আবার চেষ্টা করুন।');
+    return;
+  }
+  closeCourier();
+  toast('কুরিয়ার তথ্য সেভ হয়েছে');
+  await loadOrders();
+});
+
+/* =====================================================================
+   Steadfast Edge Function (courier-steadfast)
+   ---------------------------------------------------------------------
+   Verify JWT: ON — তাই লগইন করা অ্যাডমিনের access token পাঠাতে হয়।
+   ফাংশনটা এখন বন্ধ (STEADFAST_ENABLED=false), তখন courier_disabled
+   ফেরত দেয় — সেটা এরর নয়, তাই আলাদা করে বোঝানো হয়।
+   টাকার অঙ্ক (COD collection) এখান থেকে পাঠানো হয় না — Edge Function
+   নিজেই ডাটাবেসের due_amount দেখে ঠিক করে।
+   ===================================================================== */
+const COURIER_ERR_BN = {
+  courier_disabled:        'কুরিয়ার সংযোগ এখনো চালু করা হয়নি (STEADFAST_ENABLED = false)।',
+  courier_not_configured:  'Steadfast API key সেট করা নেই।',
+  courier_unreachable:     'কুরিয়ার সার্ভারে পৌঁছানো যায়নি। একটু পরে আবার চেষ্টা করুন।',
+  courier_rejected:        'কুরিয়ার অর্ডারটি নেয়নি। VERIFY BLOCK-এর field নামগুলো মিলিয়ে দেখুন।',
+  courier_status_unavailable:'কুরিয়ার এখন অবস্থা জানাতে পারছে না।',
+  already_dispatched:      'এই অর্ডার আগেই কুরিয়ারে পাঠানো হয়েছে।',
+  not_dispatched:          'এই অর্ডার এখনো কুরিয়ারে দেওয়া হয়নি।',
+  order_closed:            'বন্ধ হয়ে যাওয়া অর্ডার কুরিয়ারে পাঠানো যায় না।',
+  order_not_found:         'অর্ডার পাওয়া যায়নি।'
+};
+async function callCourier(action, btnId, busyText){
+  if(!courierOrderId) return;
+  const btn = document.getElementById(btnId);
+  const original = btn.innerHTML;
+  btn.disabled = true; btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> ${busyText}`;
+  hideMsg('cmMsg');
+  try{
+    const { data: s } = await sb.auth.getSession();
+    const token = s && s.session && s.session.access_token;
+    if(!token){ showMsg('cmMsg', ERR_BN.not_authenticated); return; }
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/courier-steadfast`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + token,
+        'apikey': SUPABASE_ANON_KEY
+      },
+      body: JSON.stringify({ action: action, order_id: courierOrderId })
+    }).then(r=>r.json()).catch(()=>({ ok:false, code:'courier_unreachable' }));
+
+    if(!res || res.ok !== true){
+      showMsg('cmMsg', COURIER_ERR_BN[res && res.code] || (res && res.message) || 'কাজটি সম্পন্ন করা যায়নি।');
+      return;
+    }
+    closeCourier();
+    toast(action === 'create'
+      ? `কুরিয়ারে পাঠানো হয়েছে · Consignment ${res.consignment_id}`
+      : `কুরিয়ার স্টেটাস: ${res.courier_status}`);
+    // status sync-এ অর্ডারের status বদলে যেতে পারে (delivered/returned),
+    // তাই উপরের গণনার কার্ডগুলোও নতুন করে আনি — শুধু টেবিল নয়।
+    await loadAll();
+  } finally {
+    btn.disabled = false; btn.innerHTML = original;
+  }
+}
+document.getElementById('cmDispatch').addEventListener('click', ()=>callCourier('create','cmDispatch','পাঠানো হচ্ছে...'));
+document.getElementById('cmSync').addEventListener('click',    ()=>callCourier('status','cmSync','আনা হচ্ছে...'));
+
+/* ===================== বিস্তারিত মডাল ===================== */
+function openDetail(orderId){
+  const o = ALL_ORDERS.find(x=>x.order_id===orderId); if(!o) return;
+  const ts = [
+    ['অর্ডার হয়েছে', o.created_at], ['কনফার্মড', o.confirmed_at],
+    ['প্রসেসিং শুরু', o.processing_started_at], ['ডেলিভারির জন্য প্রস্তুত', o.ready_for_delivery_at],
+    ['শিপড', o.shipped_at], ['ডেলিভারির পথে', o.out_for_delivery_at],
+    ['ডেলিভারড', o.delivered_at], ['বাতিল', o.cancelled_at],
+    ['রিটার্নড', o.returned_at], ['রিফান্ডেড', o.refunded_at]
+  ].filter(r=>r[1]);
+  const payLabel = PAY_LABEL[o.payment_status] || o.payment_status;
+  document.getElementById('detailBody').innerHTML = `
+    <div style="margin-bottom:16px;">
+      <div class="oid" style="font-size:16px;">${esc(o.order_id)}</div>
+      <div class="muted">${fmtDateShort(o.created_at)}</div>
+    </div>
+    <div class="kv"><span>কাস্টমার</span><span>${esc(o.customer_name)}</span></div>
+    <div class="kv"><span>ফোন</span><span class="mono">${esc(o.phone)}</span></div>
+    <div class="kv"><span>ঠিকানা</span><span style="max-width:290px;">${esc(o.address)}</span></div>
+    <div class="kv"><span>শহর</span><span>${esc(o.city)}</span></div>
+    <div class="kv"><span>উৎস</span><span>${esc(o.order_source||'website')}</span></div>
+
+    <h4 style="font-size:13.5px;margin:18px 0 8px;"><i class="fas fa-box"></i> পণ্য</h4>
+    ${(o.items||[]).map(i=>`<div class="kv"><span>${esc(i.name||i.id)} × ${esc(i.qty)}</span><span>${fmtBDT(i.subtotal!=null?i.subtotal:(i.price*i.qty))}</span></div>`).join('') || '<div class="muted">—</div>'}
+
+    <h4 style="font-size:13.5px;margin:18px 0 8px;"><i class="fas fa-coins"></i> টাকার হিসাব</h4>
+    <div class="kv"><span>Product Total</span><span>${fmtBDT(o.product_total)}</span></div>
+    <div class="kv"><span>Delivery Charge</span><span>${fmtBDT(o.delivery_charge)}</span></div>
+    <div class="kv"><span>Total</span><span>${fmtBDT(o.total_amount)}</span></div>
+    <div class="kv"><span>Paid</span><span style="color:var(--primary);">${fmtBDT(o.paid_amount)}</span></div>
+    <div class="kv"><span>Due</span><span style="color:${Number(o.due_amount)>0?'var(--accent)':'var(--text)'};">${fmtBDT(o.due_amount)}</span></div>
+
+    <h4 style="font-size:13.5px;margin:18px 0 8px;"><i class="fas fa-credit-card"></i> পেমেন্ট</h4>
+    <div class="kv"><span>Method</span><span>${methodFull(o.payment_method)}</span></div>
+    <div class="kv"><span>Status</span><span><span class="tag ${PAY_TONE[o.payment_status]||'gray'}">${payLabel}</span></span></div>
+    <div class="kv"><span>Transaction ID</span><span class="mono" style="font-size:11.5px;">${esc(o.transaction_id||'—')}</span></div>
+    <div class="kv"><span>Gateway Txn</span><span class="mono" style="font-size:11.5px;">${esc(o.gateway_transaction_id||'—')}</span></div>
+    <div class="kv"><span>Payment Date</span><span>${o.payment_date?fmtDateShort(o.payment_date):'—'}</span></div>
+    ${o.payment_failure_reason?`<div class="kv"><span>ব্যর্থতার কারণ</span><span style="color:var(--accent);max-width:280px;">${esc(o.payment_failure_reason)}</span></div>`:''}
+
+    <h4 style="font-size:13.5px;margin:18px 0 8px;"><i class="fas fa-truck-fast"></i> কুরিয়ার</h4>
+    ${o.consignment_id||o.courier_name ? `
+      <div class="kv"><span>Courier</span><span>${esc(o.courier_name||'—')}</span></div>
+      <div class="kv"><span>Consignment ID</span><span class="mono">${esc(o.consignment_id||'—')}</span></div>
+      <div class="kv"><span>Tracking Code</span><span class="mono">${esc(o.tracking_code||'—')}</span></div>
+      <div class="kv"><span>Delivery Status</span><span>${esc(o.delivery_status||'—')}</span></div>
+      <div class="kv"><span>Current Location</span><span>${esc(o.courier_current_location||'—')}</span></div>
+      <div class="kv"><span>Destination</span><span>${esc(o.courier_destination||'—')}</span></div>
+      <div class="kv"><span>Last Updated</span><span>${o.courier_last_updated?fmtDateShort(o.courier_last_updated):'—'}</span></div>
+      ${(o.courier_latitude && o.courier_longitude) ? '' : '<div class="muted" style="margin-top:6px;">Live courier location is currently unavailable.</div>'}
+    ` : '<div class="muted">এখনো কুরিয়ারে দেওয়া হয়নি।</div>'}
+
+    <h4 style="font-size:13.5px;margin:18px 0 8px;"><i class="fas fa-clock-rotate-left"></i> সময়রেখা</h4>
+    ${ts.map(r=>`<div class="kv"><span>${r[0]}</span><span>${fmtDateShort(r[1])}</span></div>`).join('')}
+
+    ${o.admin_note?`<h4 style="font-size:13.5px;margin:18px 0 8px;"><i class="fas fa-note-sticky"></i> অ্যাডমিন নোট</h4>
+      <pre style="white-space:pre-wrap;font-size:12px;color:var(--text-dim);background:var(--surface-2);padding:11px 13px;border-radius:9px;font-family:inherit;">${esc(o.admin_note)}</pre>`:''}
+  `;
+  document.getElementById('detailOv').classList.add('active');
+  document.getElementById('detailModal').classList.add('active');
+}
+function closeDetail(){
+  document.getElementById('detailOv').classList.remove('active');
+  document.getElementById('detailModal').classList.remove('active');
+}
+document.getElementById('detailClose').addEventListener('click', closeDetail);
+document.getElementById('detailCancel').addEventListener('click', closeDetail);
+document.getElementById('detailOv').addEventListener('click', closeDetail);
+
+/* ===================== REALTIME (শুধু লগইন করা অ্যাডমিনের জন্য) =====================
+   কাস্টমারের ট্র্যাকিং পেজে Realtime নেই — সেখানে polling, কারণ anon-কে
+   Realtime দিতে হলে orders টেবিলে SELECT policy খুলে দিতে হতো। এখানে
+   অ্যাডমিন লগইন করা, তাই এটা নিরাপদ। */
+function subscribeRealtime(){
+  if(realtimeChannel) return;
+  try{
+    realtimeChannel = sb.channel('admin-orders')
+      .on('postgres_changes', { event:'*', schema:'public', table:'orders' }, ()=>{ loadAll(); })
+      .subscribe();
+  }catch(e){ console.warn('Realtime unavailable, falling back to manual refresh', e); }
+}
+
+/* ===================== বুট ===================== */
+(async function boot(){
+  if(!SB_READY){
+    showMsg('liMsg','Supabase কনফিগার করা হয়নি — এই ফাইলের উপরে SUPABASE_URL ও SUPABASE_ANON_KEY বসান।');
+    return;
+  }
+  const { data } = await sb.auth.getSession();
+  if(data && data.session){ await enterApp(data.session.user); }
+})();
+</script>
+</body>
+</html>
